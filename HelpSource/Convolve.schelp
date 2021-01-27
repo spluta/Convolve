@@ -1,0 +1,61 @@
+TITLE:: Convolve
+summary:: Language-Side File and Buffer Convolution
+categories:: Undocumented classes
+related:: Classes/SomeRelatedClass, Reference/SomeRelatedStuff
+
+DESCRIPTION::
+Sometimes you just want to Convolve two Files or Buffers
+
+Takes two files or two buffers and returns a buffer which is a convolution of the two. Works with mono and stereo sources and sound files of almost any duration.
+
+CLASSMETHODS::
+
+METHOD:: fileConvolve
+argument:: server
+
+The server on which to load the buffers. Will boot the
+
+argument:: source
+
+A sound file of any duration, up to two channels. The output should be able to be up to 2**27 frames.
+
+argument:: impulse
+
+A sound file of any duration, up to two channels. The output should be able to be up to 2**27 frames.
+
+argument:: action
+
+The action to be done when the process is complete
+
+METHOD:: bufConvolve
+argument:: server
+
+The server on which to load the buffers. Will boot the
+
+argument:: source
+
+A buffer of any duration, up to two channels. The output should be able to be up to 2**27 frames.
+
+argument:: impulse
+
+A buffer of any duration, up to two channels. The output should be able to be up to 2**27 frames.
+
+argument:: action
+
+METHOD:: convBuf
+
+Access to the convolved buffer once the process has completed.
+
+INSTANCEMETHODS::
+
+
+EXAMPLES::
+
+code::
+//convolve Thor's daughter with herself
+Convolve.fileConvolve(s, Platform.resourceDir +/+ "sounds/a11wlk01.wav", Platform.resourceDir +/+ "sounds/a11wlk01.wav", {|buf| c = buf; "done".postln;});
+
+Convolve.convBuf.play;
+c.play;
+
+::
