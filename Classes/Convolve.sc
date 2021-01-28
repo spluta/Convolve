@@ -17,7 +17,7 @@ Convolve {
 
 
 			bufB.loadToFloatArray(action:{|arrayb|
-				var fftSize = min(bufA.numFrames.nextPowerOfTwo.asInteger.postln, bufB.numFrames.nextPowerOfTwo.asInteger.postln);
+				var fftSize = min(bufA.numFrames.nextPowerOfTwo.asInteger, bufB.numFrames.nextPowerOfTwo.asInteger);
 				if(fftSize>(2**17)){fftSize = 2**17};
 				("fftSize: "++fftSize).postln;
 				aArrays = this.makeWhole(array.clump(bufA.numChannels).flop, fftSize);
