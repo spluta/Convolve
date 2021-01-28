@@ -1,12 +1,14 @@
 TITLE:: Convolve
 summary:: Language-Side File and Buffer Convolution
 categories:: Undocumented classes
-related:: Classes/SomeRelatedClass, Reference/SomeRelatedStuff
+related:: Classes/Signal
 
 DESCRIPTION::
 Sometimes you just want to Convolve two Files or Buffers
 
 Takes two files or two buffers and returns a buffer which is a convolution of the two. Works with mono and stereo sources and sound files of almost any duration.
+
+Uses Signal.convolve from the SignalBox Quark. Thanks to Jo Anderson for that excellent extension.
 
 CLASSMETHODS::
 
@@ -25,7 +27,7 @@ A sound file of any duration, up to two channels. The output should be able to b
 
 argument:: action
 
-The action to be done when the process is complete
+The function to be completed when the process is done. The function will be passed the convolved buffer.
 
 METHOD:: bufConvolve
 argument:: server
@@ -42,9 +44,11 @@ A buffer of any duration, up to two channels. The output should be able to be up
 
 argument:: action
 
+The function to be completed when the process is done. The function will be passed the convolved buffer.
+
 METHOD:: convBuf
 
-Access to the convolved buffer once the process has completed.
+Access to the convolved buffer once the process has completed. Will be overwritten on the next convolution process.
 
 INSTANCEMETHODS::
 
@@ -52,10 +56,17 @@ INSTANCEMETHODS::
 EXAMPLES::
 
 code::
-//convolve Thor's daughter with herself
-Convolve.fileConvolve(s, Platform.resourceDir +/+ "sounds/a11wlk01.wav", Platform.resourceDir +/+ "sounds/a11wlk01.wav", {|buf| c = buf; "done".postln;});
+//a simple  example
+Convolve.fileConvolve(s, Platform.resourceDir +/+ "sounds/a11wlk01.wav", Platform.resourceDir +/+ "sounds/a11wlk01.wav", {|buf| c = buf;});
 
 Convolve.convBuf.play;
 c.play;
 
+//use your own files - I am sure you can come up with something better
+//something like this is far more interesting
+
+a = Buffer.read(s, "/myDocs/bees.aif");
+b = Buffer.read(s, "/myDocs/ThrillerChord.aiff");
+Convolve.bufConvolve(s, a, b, {|buf| d = buf});
+d.play
 ::

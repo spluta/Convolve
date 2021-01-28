@@ -1,7 +1,7 @@
 Convolve {
-	classvar fftSize=65536, <>convBuf;
+	classvar <>convBuf;
 
-	*makeWhole {|arrays|
+	*makeWhole {|arrays, fftSize|
 		var temp;
 		temp = ((arrays[0].size/fftSize).ceil*fftSize).asInteger-arrays[0].size;
 		arrays = arrays.collect{|array| array.addAll(Array.fill(temp, {0}))};
@@ -14,10 +14,14 @@ Convolve {
 		action ?? {action=={"".postln;"convolved!".postln;}};
 
 		bufA.loadToFloatArray(action:{|array|
-			aArrays = this.makeWhole(array.clump(bufA.numChannels).flop);
+
 
 			bufB.loadToFloatArray(action:{|arrayb|
-				bArrays = this.makeWhole(arrayb.clump(bufB.numChannels).flop);
+				var fftSize = min(bufA.numFrames.nextPowerOfTwo.asInteger.postln, bufB.numFrames.nextPowerOfTwo.asInteger.postln);
+				if(fftSize>(2**17)){fftSize = 2**17};
+				("fftSize: "++fftSize).postln;
+				aArrays = this.makeWhole(array.clump(bufA.numChannels).flop, fftSize);
+				bArrays = this.makeWhole(arrayb.clump(bufB.numChannels).flop, fftSize);
 
 				numOutChans = max(bufA.numChannels, bufB.numChannels);
 
@@ -39,15 +43,13 @@ Convolve {
 				};
 				final = final.flop.flatten.asArray;
 				final=final/final[final.maxIndex];
-				convBuf = Buffer.loadCollection(server, final, numOutChans, {|buf| action.value(buf)});
+				convBuf = Buffer.loadCollection(server, final, numOutChans, {|buf| "".postln; buf.postln; action.value(buf)});
 		})})
 	}
 
 	*fileConvolve {|server, source, impulse, action|
 
 		server.waitForBoot{
-
-			/*			if(SoundFile.openRead(impulse).numFrames>(2**20)){"impulse too big. must be fewer than 2**20 samples (23 seconds at 44100)".postln}{*/
 			"convolving".postln;
 			Buffer.read(server, source, action:{|bufA|
 				Buffer.read(server, impulse, action:{|bufB|
@@ -58,9 +60,7 @@ Convolve {
 	}
 
 	*bufConvolve {|server, sourceBuf, impulseBuf, action|
-		if(impulseBuf.numFrames>(2**20)){"impulse too big. must be fewer than 2**20 samples".postln}{
-			"convolving".postln;
-			this.doit(server, sourceBuf, impulseBuf, action);
-		}
+		"convolving".postln;
+		this.doit(server, sourceBuf, impulseBuf, action);
 	}
 }
