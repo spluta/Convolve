@@ -9,7 +9,7 @@ Convolve {
 	}
 
 	*doit {|server, bufA, bufB, action|
-		var aArrays, bArrays, final, numOutChans;
+		var aArrays, bArrays, final, finalB, numOutChans;
 
 		action ?? {action=={"".postln;"convolved!".postln;}};
 
@@ -24,8 +24,10 @@ Convolve {
 				bArrays = this.makeWhole(arrayb.clump(bufB.numChannels).flop, fftSize);
 
 				numOutChans = max(bufA.numChannels, bufB.numChannels);
+				numOutChans.postln;
 
-				final = List.fill(numOutChans, {List.fill(aArrays[0].size+bArrays[0].size-1, {0})});
+				final = List.fill(numOutChans, {List.fill(aArrays[0].size+bArrays[0].size, {0})});
+
 				numOutChans.do{|chan|
 					"".postln;
 					("chan "++chan).postln;
@@ -38,12 +40,15 @@ Convolve {
 							".".post;
 							conv = seg.as(Signal).convolve(bseg);
 							conv.do{|convVal, i2| final[chan].put(fftSize*(i+bi)+i2, final[chan][fftSize*(i+bi)+i2]+convVal)};
-						}
-					}
+						};
+					};
 				};
-				final = final.flop.flatten.asArray;
-				final=final/final[final.maxIndex];
-				convBuf = Buffer.loadCollection(server, final, numOutChans, {|buf| "".postln; buf.postln; action.value(buf)});
+				finalB = Array.newClear(final[0].size*numOutChans);
+				final = final.asArray.flop;
+				final.do{|item, i| item.do{|item2, i2| finalB=finalB.put(i*2+i2, item2)}};
+				finalB=finalB/finalB[finalB.maxIndex];
+				finalB.postln;
+				convBuf = Buffer.loadCollection(server, finalB, numOutChans, {|buf| "".postln; buf.postln; action.value(buf)});
 		})})
 	}
 
