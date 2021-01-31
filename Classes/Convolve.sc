@@ -47,7 +47,6 @@ Convolve {
 				final = final.asArray.flop;
 				final.do{|item, i| item.do{|item2, i2| finalB=finalB.put(i*2+i2, item2)}};
 				finalB=finalB/finalB[finalB.maxIndex];
-				finalB.postln;
 				convBuf = Buffer.loadCollection(server, finalB, numOutChans, {|buf| "".postln; buf.postln; action.value(buf)});
 		})})
 	}
