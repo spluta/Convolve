@@ -50,6 +50,10 @@ METHOD:: convBuf
 
 Access to the convolved buffer once the process has completed. Will be overwritten on the next convolution process.
 
+METHOD:: convArray
+
+Access to the convolved array channels once the process has completed. Will be overwritten on the next convolution process.
+
 INSTANCEMETHODS::
 
 

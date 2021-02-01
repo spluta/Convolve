@@ -1,5 +1,8 @@
+//Copyright © 2021 Sam Pluta - sampluta.com
+//Released under GPLv3 License
+
 Convolve {
-	classvar <>convBuf;
+	classvar <>convBuf, <>convArray;
 
 	*makeWhole {|arrays, fftSize|
 		var temp;
@@ -9,7 +12,7 @@ Convolve {
 	}
 
 	*doit {|server, bufA, bufB, action|
-		var aArrays, bArrays, final, finalB, numOutChans;
+		var aArrays, bArrays, numOutChans;
 
 		action ?? {action=={"".postln;"convolved!".postln;}};
 
@@ -24,9 +27,8 @@ Convolve {
 				bArrays = this.makeWhole(arrayb.clump(bufB.numChannels).flop, fftSize);
 
 				numOutChans = max(bufA.numChannels, bufB.numChannels);
-				numOutChans.postln;
 
-				final = List.fill(numOutChans, {List.fill(aArrays[0].size+bArrays[0].size, {0})});
+				convArray = List.fill(numOutChans, {List.fill(aArrays[0].size+bArrays[0].size, {0})});
 
 				numOutChans.do{|chan|
 					"".postln;
@@ -39,15 +41,24 @@ Convolve {
 							var bseg = bArrays[(chan%bufB.numChannels)].as(Signal).copyRange((fftSize*bi).asInteger, (fftSize*(bi+1)).asInteger);
 							".".post;
 							conv = seg.as(Signal).convolve(bseg);
-							conv.do{|convVal, i2| final[chan].put(fftSize*(i+bi)+i2, final[chan][fftSize*(i+bi)+i2]+convVal)};
+							conv.do{|convVal, i2| convArray[chan].put(fftSize*(i+bi)+i2, convArray[chan][fftSize*(i+bi)+i2]+convVal)};
 						};
 					};
 				};
-				finalB = Array.newClear(final[0].size*numOutChans);
-				final = final.asArray.flop;
-				final.do{|item, i| item.do{|item2, i2| finalB=finalB.put(i*2+i2, item2)}};
-				finalB=finalB/finalB[finalB.maxIndex];
-				convBuf = Buffer.loadCollection(server, finalB, numOutChans, {|buf| "".postln; buf.postln; action.value(buf)});
+				if(convArray[0].size<(2**25.9)){
+					convArray = convArray.asArray.flop.flat;
+					convArray=convArray/convArray[convArray.maxIndex];
+					convBuf = Buffer.loadCollection(server, convArray, numOutChans, {|buf| "".postln; buf.postln; action.value(buf)});
+				}{
+					var maxVal;
+					"".postln;
+					"array too large. loading each channel buffer into its own buffer.".postln;
+					maxVal = max(convArray.collect{|chan| chan[chan.maxIndex]});
+					convBuf = convArray.collect{|finChan, i|
+						finChan = finChan/maxVal;
+						Buffer.loadCollection(server, finChan, 1, {|buf| if(i==(convArray.size-1)){"no action. buffer channels are available as convBuf.".postln}});
+					};
+				}
 		})})
 	}
 
@@ -59,7 +70,6 @@ Convolve {
 				Buffer.read(server, impulse, action:{|bufB|
 					this.doit(server, bufA, bufB, action);
 			})})
-			//}
 		}
 	}
 
