@@ -46,7 +46,8 @@ Convolve {
 					};
 				};
 				if(convArray[0].size<(2**25.9)){
-					convArray = convArray.asArray.flop.flat;
+					convArray = this.flatten(convArray.asArray);
+					numOutChans.postln;
 					convArray=convArray/convArray[convArray.maxIndex];
 					convBuf = Buffer.loadCollection(server, convArray, numOutChans, {|buf| "".postln; buf.postln; action.value(buf)});
 				}{
@@ -60,6 +61,22 @@ Convolve {
 					};
 				}
 		})})
+	}
+
+	*flatten { |arr|
+		var res;
+		if(arr.size>1){
+			arr = arr.flop;
+			res = Array.newClear(arr.size * 2);
+			arr.do { |pair, i|
+				res.put(i * 2, pair[0]);
+				res.put(i * 2 + 1, pair[1]);
+			}
+		}
+		{
+			res = arr.flat;
+		}
+		^res
 	}
 
 	*fileConvolve {|server, source, impulse, action|
